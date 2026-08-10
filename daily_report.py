@@ -21,12 +21,9 @@ except ImportError:
 
 # ========== 配置 ==========
 CITY = "Tianjin"  # 天气城市（天津）
-USER_ID = os.environ.get("WECHAT_USER_ID", "MaTeng")  # 企业微信接收人userid
 
-# 企业微信API凭证（从 GitHub Secrets 读取）
-CORP_ID = os.environ.get("WECHAT_CORP_ID", "")
-CORP_SECRET = os.environ.get("WECHAT_CORP_SECRET", "")
-AGENT_ID = os.environ.get("WECHAT_AGENT_ID", "")
+# 企业微信群机器人 Webhook URL（从 GitHub Secrets 读取）
+WEBHOOK_URL = os.environ.get("WEBHOOK_URL", "")
 
 # 课程表JSON路径
 SCHEDULE_PATH = os.path.join(os.path.dirname(__file__), "course_schedule.json")
@@ -294,40 +291,17 @@ def get_courses_today():
     return "\n".join(lines)
 
 
-def get_wechat_token():
-    """获取企业微信access_token"""
-    if not CORP_ID or not CORP_SECRET:
-        print("缺少企业微信API凭证，请在GitHub Secrets中配置")
-        return None
-    try:
-        url = f"https://qyapi.weixin.qq.com/cgi-bin/gettoken?corpid={CORP_ID}&corpsecret={CORP_SECRET}"
-        resp = requests.get(url, timeout=10)
-        data = resp.json()
-        if data.get("errcode") == 0:
-            return data["access_token"]
-        else:
-            print(f"获取token失败：{data}")
-            return None
-    except Exception as e:
-        print(f"获取token异常：{e}")
-        return None
-
-
 def send_to_wechat(content):
-    """通过企业微信API发送消息"""
-    token = get_wechat_token()
-    if not token:
+    """通过企业微信群机器人 Webhook 发送消息"""
+    if not WEBHOOK_URL:
+        print("❌ 未配置 WEBHOOK_URL")
         return False
-
-    url = f"https://qyapi.weixin.qq.com/cgi-bin/message/send?access_token={token}"
-    payload = {
-        "touser": USER_ID,
-        "msgtype": "text",
-        "agentid": int(AGENT_ID) if AGENT_ID else 0,
-        "text": {"content": content}
-    }
     try:
-        resp = requests.post(url, json=payload, timeout=10)
+        payload = {
+            "msgtype": "text",
+            "text": {"content": content}
+        }
+        resp = requests.post(WEBHOOK_URL, json=payload, timeout=10)
         data = resp.json()
         if data.get("errcode") == 0:
             print("✅ 消息发送成功")
@@ -376,11 +350,11 @@ def main():
     print("=" * 40)
 
     # 5. 发送
-    if CORP_ID and CORP_SECRET and AGENT_ID:
+    if WEBHOOK_URL:
         send_to_wechat(message)
     else:
-        print("\n⚠️ 未配置企业微信API凭证，仅打印预览（不发送）")
-        print("请在GitHub Secrets中设置 WECHAT_CORP_ID, WECHAT_CORP_SECRET, WECHAT_AGENT_ID")
+        print("\n⚠️ 未配置 WEBHOOK_URL，仅打印预览（不发送）")
+        print("请在GitHub Secrets中设置 WEBHOOK_URL")
 
 
 if __name__ == "__main__":
