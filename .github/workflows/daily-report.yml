@@ -1,0 +1,32 @@
+name: 马腾每日简报
+
+on:
+  schedule:
+    # 北京时间每天 10:30 = UTC 02:30
+    - cron: '30 2 * * *'
+  workflow_dispatch:  # 允许手动触发测试
+
+jobs:
+  daily-report:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+
+      - name: 设置 Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: 安装依赖
+        run: pip install requests
+
+      - name: 运行每日简报
+        env:
+          WECHAT_CORP_ID: ${{ secrets.WECHAT_CORP_ID }}
+          WECHAT_CORP_SECRET: ${{ secrets.WECHAT_CORP_SECRET }}
+          WECHAT_AGENT_ID: ${{ secrets.WECHAT_AGENT_ID }}
+          WECHAT_USER_ID: ${{ secrets.WECHAT_USER_ID }}
+        run: python daily_report.py
