@@ -2,7 +2,7 @@ name: 马腾每日简报
 
 on:
   schedule:
-    - cron: '30 2 * * *'
+    - cron: '0 23 * * *'
   workflow_dispatch:
 
 jobs:
