@@ -20,8 +20,6 @@ jobs:
         run: pip install requests
       - name: 运行每日简报
         env:
-          WECHAT_CORP_ID: ${{ secrets.WECHAT_CORP_ID }}
-          WECHAT_CORP_SECRET: ${{ secrets.WECHAT_CORP_SECRET }}
-          WECHAT_AGENT_ID: ${{ secrets.WECHAT_AGENT_ID }}
-          WECHAT_USER_ID: ${{ secrets.WECHAT_USER_ID }}
+          WEBHOOK_URL: ${{ secrets.WEBHOOK_URL }}
+
         run: python daily_report.py
